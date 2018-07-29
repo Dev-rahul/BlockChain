@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const Blockchain = require('./blockchain');
 const uuid = require('uuid/v1');
 const port = process.argv[2];
+const rp = require('request-promise');
 
 const nodeAddress = uuid().split('-').join('');
 
@@ -43,6 +44,33 @@ app.get('/mine', function(req, res) {
 
 app.post('/register-and-boradcast-node', function(req, res) {
   const newNodeUrl = req.body.newNodeUrl;
+  if (bitcoin.networkNodes.indexOf(newNodeUrl) == -1) bitcoin.networkNodes.push(newNodeUrl);
+
+  const regNodesPromises = [];
+  bitcoin.networkNodes.forEach(networkNodeUrl => {
+    const requestOptions = {
+      uri: networkNodeUrl + '/register-node',
+      method: 'POST',
+      body: {newNodeUrl: newNodeUrl },
+      json: true
+    };
+    regNodesPromises.push(rp(requestOptions));
+  });
+
+  Promise.all(regNodesPromises)
+  .then(data => {
+    const bulkRegisterOptions = {
+      uri: newNodeUrl + '/register-nodes-bulk',
+      meothod: 'POST',
+      body: {allNetworkNodes: [...bitcoin.networkNodes, bitcoin.currentNodeUrl] },
+      json: true
+    };
+    return rp(bulkRegisterOptions);
+  })
+  .then(data => {
+    res.json({note: 'New node registered with N/W successfully '});
+
+  });
 });
 
 app.post('/register-node', function(req, res) {
