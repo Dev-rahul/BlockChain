@@ -71,7 +71,7 @@ app.post('/register-and-broadcast-node', function(req, res) {
 	})
 	.then(data => {
 		res.json({ note: 'New node registered with network successfully.' });
-	});
+	});  
 });
 
 app.post('/register-node', function(req, res) {
