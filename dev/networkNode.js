@@ -289,6 +289,15 @@ app.get('/transaction/:transactionId', function(req, res) {
 	});
 });
 
+app.get('/chit/:chitId', function (req, res) {
+	const chitId = req.params.chitId;
+	const chitData = bitcoin.getChit(chitId);
+	res.json({
+		chit: chitData.chit,
+		block: chitData.block
+	});
+});
+
 
 // get address by address
 app.get('/address/:address', function(req, res) {

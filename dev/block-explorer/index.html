@@ -27,6 +27,7 @@
 							<option value="block">Block Hash</option>
 							<option value="transaction">Transaction ID</option>
 							<option value="address">Address</option>
+							<option value="chit">Chit ID</option>
 						</select>
 					</div>
 					<button
@@ -95,6 +96,34 @@
 				</table>
 				<!-- end 'display transaction' table -->
 
+				<!-- 'display Chit' table -->
+					<h3 class="table-title" ng-if="chit">Chit Info</h3>
+					<table class="table table-striped" ng-if="chit">
+						<tbody>
+							<tr>
+								<td class="bold">Chit Amount</td>
+								<td>{{ chit.chitAmount }}</td>
+							</tr>
+							<tr>
+								<td class="bold">Chit User(s)</td>
+								<td>{{ chit.sender}}</td>
+							</tr>
+							<tr>
+								<td class="bold">Chit Period </td>
+								<td>{{ chit.chitTime}}</td>
+							</tr>
+						</tbody>
+					</table>
+					<!-- end 'display Chi' table -->
+				
+				
+
+
+
+
+
+
+
 				<!-- 'display address' table -->
 				<h3 class="table-title" ng-if="addressData">Address</h3>
 				<p id="balance-text" ng-if="addressData">(Amount Payed : {{ addressData.addressBalance }})</p> <br>
@@ -128,6 +157,7 @@
 			$scope.block = null;
 			$scope.transaction = null;
 			$scope.addressData = null;
+			$scope.chit = null;
 			$scope.initialSearchMade = false;
 
 			$scope.fetchBlock = function(blockHash) {
@@ -136,6 +166,7 @@
 					$scope.block = response.data.block;
 					$scope.transaction = null;
 					$scope.addressData = null;
+					$scope.chit = null;
 				});
 			};
 
@@ -145,7 +176,19 @@
 					$scope.transaction = response.data.transaction;
 					$scope.block = null;
 					$scope.addressData = null;
+					$scope.chit = null;
 				});				
+			};
+
+			$scope.fetchChit = function (chitId) {
+				$http.get(`/chit/${chitId}`)
+					.then(response => {
+						$scope.chit = response.data.chit;
+						$scope.transaction = null;
+						$scope.block = null;
+						$scope.addressData = null;
+						
+					});
 			};
 
 			$scope.fetchAddressData = function(address) {
@@ -156,6 +199,7 @@
 						.addressData = null;
 					$scope.block = null;
 					$scope.transaction = null;
+					$scope.chit = null;
 				});				
 			};
 
@@ -167,9 +211,13 @@
 				else if ($scope.searchType === 'transaction') {
 					$scope.fetchTransaction(searchValue);
 				}
+				else if ($scope.searchType === 'chit') {
+					$scope.fetchChit(searchValue);
+				}
 				else if ($scope.searchType === 'address') {
 					$scope.fetchAddressData(searchValue);
 				}
+				
 			};
 
 		});

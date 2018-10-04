@@ -47,7 +47,6 @@ Blockchain.prototype.createNewTransaction = function(amount, sender, chitId) {
 		amount: amount,
 		sender: sender,
 		chitId: chitId,
-		chitAmount : amount* 12 ,
 		transactionId: uuid().split('-').join('')
 	};
 
@@ -114,7 +113,7 @@ Blockchain.prototype.chainIsValid = function(blockchain) {
 	for (var i = 1; i < blockchain.length; i++) {
 		const currentBlock = blockchain[i];
 		const prevBlock = blockchain[i - 1];
-		const blockHash = this.hashBlock(prevBlock['hash'], { transactions: currentBlock['transactions'], index: currentBlock['index'] }, currentBlock['nonce']);
+		const blockHash = this.hashBlock(prevBlock['hash'], { transactions: currentBlock['transactions'], index: currentBlock['index'], chits: currentBlock['chits'] }, currentBlock['nonce']);
 		if (blockHash.substring(0, 4) !== '0000') validChain = false;
 		if (currentBlock['previousBlockHash'] !== prevBlock['hash']) validChain = false;
 	};
@@ -124,8 +123,9 @@ Blockchain.prototype.chainIsValid = function(blockchain) {
 	const correctPreviousBlockHash = genesisBlock['previousBlockHash'] === '0';
 	const correctHash = genesisBlock['hash'] === '0';
 	const correctTransactions = genesisBlock['transactions'].length === 0;
+	const correctChits = genesisBlock['chits'].length === 0;
 
-	if (!correctNonce || !correctPreviousBlockHash || !correctHash || !correctTransactions) validChain = false;
+	if (!correctNonce || !correctPreviousBlockHash || !correctHash || !correctTransactions || !correctChits) validChain = false;
 
 	return validChain;
 };
@@ -160,7 +160,70 @@ Blockchain.prototype.getTransaction = function(transactionId) {
 };
 
 
+
+Blockchain.prototype.getChit = function (chitId) {
+	let correctChit = null;
+	let correctBlock = null;
+
+	this.chain.forEach(block => {
+		block.chits.forEach(chit => {
+			if (chit.ChitId === chitId) {
+				correctChit = chit;
+				correctBlock = block;
+			};
+		});
+	});
+
+	return {
+		chit: correctChit,
+		block: correctBlock
+	};
+};
+
+
+
+
+
+
 Blockchain.prototype.getAddressData = function(address) {
+	const addressTransactions = [];
+	
+	let chitID  = null ;
+	let balance = null;
+	
+	this.chain.forEach(block => {
+		block.transactions.forEach(transaction => {
+			if (transaction.sender === address) {
+				addressTransactions.push(transaction);
+				chitID = transaction.chitId;
+			};
+		});
+		block.chits.forEach(chit => {
+			if (chit.ChitId === chitID) {
+				balance = chit.chitAmount ;
+			};
+		});
+	});
+
+	
+	/* let RemainAmt = transaction.chitAmount; */ 
+	addressTransactions.forEach(transaction => {
+		if (transaction.sender === address) {
+			balance -= transaction.amount;/*  RemainAmt -= transaction.amount; */ }
+		/* else if (transaction.sender === address) amountPayed += transaction.amount; */
+	});
+	return {
+		addressTransactions: addressTransactions,
+		addressBalance: balance 
+		/* addressRemain : RemainAmt */
+	};
+};
+
+
+
+
+/* 
+Blockchain.prototype.getChitData = function (address) {
 	const addressTransactions = [];
 	this.chain.forEach(block => {
 		block.transactions.forEach(transaction => {
@@ -170,22 +233,22 @@ Blockchain.prototype.getAddressData = function(address) {
 		});
 	});
 
-	let balance = 0;
-	/* let RemainAmt = transaction.chitAmount; */ 
+	let chitAmount = chit.chitAmount;
+	
 	addressTransactions.forEach(transaction => {
-		if (transaction.sender === address) {
-			balance += transaction.amount;/*  RemainAmt -= transaction.amount; */ }
-		/* else if (transaction.sender === address) amountPayed += transaction.amount; */
+		if (transaction.sender === address && chit.chitId === transaction.chitId) {
+			chitAmount += transaction.amount;
+		}
+	
 	});
 
 	return {
 		addressTransactions: addressTransactions,
-		addressBalance: balance 
-		/* addressRemain : RemainAmt */
+		addressBalance: balance
+		
 	};
 };
-
-
+ */
 
 
 
